@@ -43,12 +43,8 @@ class Gitter
      grouped = events.group_by{|h| h["type"]}.values
      score = grouped.map { |g|
      event_type = g.first["type"].strip
-      event_score = @scoring_params[event_type]
-      unless event_score.nil?
-        event_score * g.count
-      else
-        1
-      end
+     event_score = @scoring_params[event_type] || 1
+     event_score * g.count
     }.sum
     score
   end
