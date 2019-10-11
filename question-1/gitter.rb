@@ -1,3 +1,6 @@
+require 'net/http'
+require 'uri'
+
 class Gitter
   
   def initialize(handle,scoring_params)
@@ -14,11 +17,19 @@ class Gitter
   private
   
   def build_gitter_url
-    "build url"
+    "https://api.github.com/users/#{@handle}/events/public"
   end
   
   def get_events(url)
-    "events"
+    begin
+      uri = URI.parse(url)
+      response = Net::HTTP.get_response uri
+      response.body
+    rescue Timeout::Error => e
+      puts "Request timed out"
+    rescue Exception => e
+      puts "Request failed with #{e.message}"
+    end
   end
 
   def get_score(events)
