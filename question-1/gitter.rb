@@ -1,5 +1,6 @@
 require 'net/http'
 require 'uri'
+require 'json'
 
 class Gitter
   
@@ -8,10 +9,9 @@ class Gitter
    @scoring_params = scoring_params
   end
 
-  def score()
+  def score
     events = get_events(build_gitter_url)
-    score = get_score(events)
-    puts "score for #{@handle} is #{score}"
+    puts get_score(events) unless events.nil?
   end
 
   private
@@ -24,7 +24,7 @@ class Gitter
     begin
       uri = URI.parse(url)
       response = Net::HTTP.get_response uri
-      response.body
+      response_body = JSON.parse(response.body)
     rescue Timeout::Error => e
       puts "Request timed out"
     rescue Exception => e
@@ -33,7 +33,17 @@ class Gitter
   end
 
   def get_score(events)
-    "calculated score"
+     grouped = events.group_by{|h| h["type"]}.values
+     score = grouped.map { |g|
+     event_type = g.first["type"].strip
+      event_score = @scoring_params[event_type]
+      unless event_score.nil?
+        event_score * g.count
+      else
+        1
+      end
+    }.sum
+    score
   end
 
 end
